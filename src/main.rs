@@ -33,10 +33,10 @@ impl Thread {
             panic!("Cant transtion from {:?} to {:?}", self.state, State::SEND);
         }
 
-        if *server_state != State::RECEIVE {
-            self.state = State::SEND;
-        } else {
+        if *server_state == State::RECEIVE {
             self.state = State::REPLY;
+        } else {
+            self.state = State::SEND;
         }
     }
 
@@ -45,10 +45,10 @@ impl Thread {
             panic!("Cant transtion from {:?} to {:?}", self.state, State::RECEIVE);
         }
 
-        if *client_state != State::SEND {
-            self.state = State::RECEIVE;
-        } else {
+        if *client_state == State::SEND {
             self.state = State::READY;
+        } else {
+            self.state = State::RECEIVE;
         }
     }
 
@@ -174,7 +174,7 @@ impl ThreadPool {
 }
 
 #[cfg(test)]
-mod tests {
+mod thread_pool {
     use super::{ThreadPool, State, Thread};
 
     #[test]
@@ -301,3 +301,43 @@ fn main() {
 
 
 
+#[cfg(test)]
+mod thread {
+    use super::{State, Thread};
+
+    #[test]
+    fn send_test() {
+        let mut t = Thread { id: 1, state: State::READY};
+        t.send(&State::RECEIVE);
+        assert_eq!(t.state, State::REPLY);
+
+        let mut t = Thread { id: 1, state: State::READY};
+        t.send(&State::READY);
+        assert_eq!(t.state, State::SEND);
+    }
+
+    #[test]
+    fn receive_test() {
+        let mut t = Thread { id: 1, state: State::READY};
+        t.receive(&State::SEND);
+        assert_eq!(t.state, State::READY);
+
+        let mut t = Thread { id: 1, state: State::READY};
+        t.receive(&State::READY);
+        assert_eq!(t.state, State::RECEIVE);
+    }
+
+    #[test]
+    fn reply_test() {
+        let mut t = Thread { id: 1, state: State::READY};
+        t.reply();
+        assert_eq!(t.state, State::READY);
+    }
+
+    #[test]
+    fn server_replied_test() {
+        let mut t = Thread { id: 1, state: State::REPLY};
+        t.server_replied();
+        assert_eq!(t.state, State::READY);
+    }
+}
