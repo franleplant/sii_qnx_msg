@@ -3,7 +3,6 @@ extern crate ansi_term;
 mod thread;
 mod thread_pool;
 
-//use thread::{State, Thread, ThreadId};
 use thread_pool::{ThreadPool};
 
 
@@ -71,14 +70,62 @@ fn run_3() {
     }
 
     println!("Thread 1 Receive 2");
-    let msg = rx.recv().unwrap();
+    rx.recv().unwrap();
     println!("Thread 1 Unblocked");
-    println!("{}", msg);
+    println!("\n");
+}
+
+/// run 4
+/// - Simulation of run 1 but with channels
+/// - Note that the state is completely simulated
+fn run_4() {
+    use std::thread;
+    use std::sync::mpsc;
+    use std::time::Duration;
+    println!("Run 4\n--------\n");
+
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
+
+    thread::spawn(move || {
+        println!("Thread 2 READY");
+        thread::sleep(Duration::from_millis(50));
+        println!("Receive 2 1");
+        let msg = rx1.recv().unwrap();
+        if msg != "SENT" {
+            panic!("WRONG SECUENCE");
+        }
+
+        tx2.send("RECEIVED").unwrap();
+        println!("Thread 2 READY");
+        thread::sleep(Duration::from_millis(50));
+
+        println!("Reply 2 1");
+        tx2.send("REPLY").unwrap();
+        println!("Thread 2 READY");
+    });
+
+    println!("Thread 1 READY");
+    println!("Send 1 2");
+    tx1.send("SENT").unwrap();
+    println!("Thread 1 SEND");
+    let msg = rx2.recv().unwrap();
+    if msg != "RECEIVED" {
+        panic!("WRONG SECUENCE");
+    }
+
+    println!("Thread 1 REPLY");
+    let msg = rx2.recv().unwrap();
+    if msg != "REPLY" {
+        panic!("WRONG SECUENCE");
+    }
+    println!("Thread 1 READY");
 }
 
 fn main() {
     run_1();
     run_2();
     run_3();
+    run_4();
 }
 
