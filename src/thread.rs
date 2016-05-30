@@ -1,3 +1,6 @@
+use std::fmt;
+use ansi_term::Colour::{Green, Cyan, Purple, Blue};
+
 pub type ThreadId = u32;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -8,12 +11,24 @@ pub enum State {
     REPLY
 }
 
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let label = match *self {
+            State::READY => Green.paint("READY"),
+            State::SEND => Cyan.paint("SEND"),
+            State::RECEIVE => Purple.paint("RECEIVE"),
+            State::REPLY => Blue.paint("REPLY")
+        };
+
+        write!(f, "{}", label)
+    }
+}
+
 #[derive(Debug)]
 pub struct Thread {
     pub id: ThreadId,
     pub state: State,
 }
-
 
 impl Thread {
     pub fn new(id: ThreadId) -> Thread {

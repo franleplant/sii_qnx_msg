@@ -21,8 +21,8 @@ impl ThreadPool {
     }
 
     pub fn print(&self) {
-        for id in (1..self.id_count) {
-            println!("Thread {}, {:?}", id, self.pool.get(&id).unwrap().state);
+        for id in 1..self.id_count {
+            println!("Thread {}, {}", id, self.pool.get(&id).unwrap().state);
         }
         println!("");
     }
