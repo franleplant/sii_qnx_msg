@@ -14,7 +14,7 @@ use thread_pool::{ThreadPool};
 /// - thread2 reply
 /// - both ready
 fn run_1() {
-    println!("Run 1\n");
+    println!("Run 1\n--------\n");
     let mut thread_pool = ThreadPool::new();
     let thread1_id = thread_pool.create();
     let thread2_id = thread_pool.create();
@@ -33,7 +33,7 @@ fn run_1() {
 /// - thread2 reply
 /// - both ready
 fn run_2() {
-    println!("Run 2\n");
+    println!("Run 2\n--------\n");
     let mut thread_pool = ThreadPool::new();
     let thread1_id = thread_pool.create();
     let thread2_id = thread_pool.create();
@@ -46,8 +46,39 @@ fn run_2() {
     thread_pool.print();
 }
 
+
+/// run 3
+/// - Thread 1 Receive Blocked 2
+/// - Thread 2 Send Blocked 2
+/// - Both become unlocked
+fn run_3() {
+    use std::thread;
+    use std::sync::mpsc;
+    use std::time::Duration;
+    println!("Run 3\n--------\n");
+
+    let (tx, rx) = mpsc::channel();
+
+    {
+        let tx = tx.clone();
+
+        thread::spawn(move || {
+            thread::sleep(Duration::from_millis(50));
+            println!("Thread 2 Send 1");
+            tx.send("How are you").unwrap();
+            println!("Thread 2 Unblocked");
+        });
+    }
+
+    println!("Thread 1 Receive 2");
+    let msg = rx.recv().unwrap();
+    println!("Thread 1 Unblocked");
+    println!("{}", msg);
+}
+
 fn main() {
     run_1();
     run_2();
+    run_3();
 }
 
