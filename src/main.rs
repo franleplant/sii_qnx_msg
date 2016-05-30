@@ -19,7 +19,6 @@ struct Thread {
 }
 
 
-
 impl Thread {
     fn new(id: ThreadId) -> Thread {
         Thread {
@@ -40,6 +39,12 @@ impl Thread {
         }
     }
 
+    fn client_sent(&mut self) {
+        if self.state == State::RECEIVE {
+            self.state = State::READY
+        }
+    }
+
     fn receive(&mut self, client_state: &State) {
         if self.state != State::READY {
             panic!("Cant transtion from {:?} to {:?}", self.state, State::RECEIVE);
@@ -49,6 +54,12 @@ impl Thread {
             self.state = State::READY;
         } else {
             self.state = State::RECEIVE;
+        }
+    }
+
+    fn server_received(&mut self) {
+        if self.state == State::SEND {
+            self.state = State::REPLY
         }
     }
 
@@ -123,9 +134,9 @@ impl ThreadPool {
             client.send(&server_state)
         }
 
-        let server: &mut Thread = self.pool.get_mut(&server_id).unwrap();
-        if server_state == State::RECEIVE {
-            server.state = State::READY
+        {
+            let server: &mut Thread = self.pool.get_mut(&server_id).unwrap();
+            server.client_sent();
         }
 
     }
@@ -152,9 +163,9 @@ impl ThreadPool {
             server.receive(&client_state);
         }
 
-        let client: &mut Thread = self.pool.get_mut(&client_id).unwrap();
-        if client_state == State::SEND {
-            client.state = State::REPLY
+        {
+            let client: &mut Thread = self.pool.get_mut(&client_id).unwrap();
+            client.server_received();
         }
 
     }
