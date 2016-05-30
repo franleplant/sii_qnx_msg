@@ -21,12 +21,10 @@ impl ThreadPool {
     }
 
     pub fn print(&self) {
-        println!("\nThread Pool");
-        println!("id_count: {}", self.id_count);
-
-        for (id, thread) in self.pool.iter() {
-            println!("Thread {}, {:?}", id, thread.state);
+        for id in (1..self.id_count) {
+            println!("Thread {}, {:?}", id, self.pool.get(&id).unwrap().state);
         }
+        println!("");
     }
 
     pub fn create(&mut self) -> ThreadId {
